@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: bitcoin-data-pv
+spec:
+  storageClassName: "local-path"
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /data/crypto/bitcoin
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bitcoin-data-pvc
+  namespace: crypto
+spec:
+  volumeName: bitcoin-data-pv
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: crypto
+  name: bitcoin
+spec:
+  selector:
+    app: bitcoin
+  ports:
+  - name: rpc
+    port: 8333
+  - name: zmq
+    port: 28332
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  namespace: crypto
+  name: bitcoin
+spec:
+  replicas: 1
+  selector:
+    app: bitcoin
+  template:
+    metadata:
+      name: bitcoin
+      labels:
+        app: bitcoin
+    spec:
+      hostname: bitcoin
+      containers:
+      - name: bitcoind
+        image: quay.io/declarativesystems/cryptodaemons_bitcoin:23.0
+        args:
+        - "-server"
+        - "-txindex=1"
+        - "-rpcallowip=0.0.0.0/0"
+        - "-rpcbind=0.0.0.0"
+
+          #- -zmqpubrawtx=tcp://0.0.0.0:28332
+          #- -zmqpubrawblock=tcp://0.0.0.0:28332
+          #- -zmqpubhashblock=tcp://0.0.0.0:28332
+          # -zmqpubhashtx=tcp://0.0.0.0:28332
+          #- -rpcport=8332
+          #- -rpcallowip=0.0.0.0/0
+          #- -server=1
+          #- -rpcbind=127.0.0.1
+          #- -rpcbind=bitcoind-mainnet
+          #- -rpcauth=bleevin:<password>
+        #imagePullPolicy: Always
+        volumeMounts:
+        - mountPath: /root/.bitcoin
+          name: bitcoin
+      restartPolicy: Always
+      volumes:
+      - name: bitcoin
+        persistentVolumeClaim:
+          claimName: bitcoin-data-pvc

@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: wownero-data-pv
+spec:
+  storageClassName: "local-path"
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /data/crypto/wownero
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wownero-data-pvc
+  namespace: crypto
+spec:
+  volumeName: wownero-data-pv
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: crypto
+  name: wownero
+spec:
+  selector:
+    app: wownero
+  ports:
+  - name: p2p
+    port: 34567
+  - name: rpc
+    port: 34568
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  namespace: crypto
+  name: wownero
+spec:
+  replicas: 1
+  selector:
+    app: wownero
+  template:
+    metadata:
+      name: wownero
+      labels:
+        app: wownero
+    spec:
+      hostname: wownero
+      containers:
+      - name: wownerod
+        image: quay.io/declarativesystems/cryptodaemons_wownero:0.10.1.0
+        args:
+        - --confirm-external-bind
+        - --non-interactive
+        - --public-node
+        - --restricted-rpc
+        - --p2p-bind-ip=0.0.0.0
+        - --p2p-bind-port=34567
+        - --rpc-bind-ip=0.0.0.0
+        - --rpc-bind-port=34568
+        volumeMounts:
+        - mountPath: /root/.wownero
+          name: wownero
+      restartPolicy: Always
+      volumes:
+      - name: wownero
+        persistentVolumeClaim:
+          claimName: wownero-data-pvc

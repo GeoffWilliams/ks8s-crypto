@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: litecoin-data-pv
+spec:
+  storageClassName: "local-path"
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /data/crypto/litecoin
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: litecoin-data-pvc
+  namespace: crypto
+spec:
+  volumeName: litecoin-data-pv
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: crypto
+  name: litecoin
+spec:
+  selector:
+    app: litecoin
+  ports:
+  - name: p2p
+    port: 9333
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  namespace: crypto
+  name: litecoin
+spec:
+  replicas: 1
+  selector:
+    app: litecoin
+  template:
+    metadata:
+      name: litecoin
+      labels:
+        app: litecoin
+    spec:
+      hostname: litecoin
+      containers:
+      - name: litecoind
+        image: quay.io/declarativesystems/cryptodaemons_litecoin:0.21.2.1
+        args:
+        - "-server"
+        volumeMounts:
+        - mountPath: /root/.litecoin
+          name: litecoin
+      restartPolicy: Always
+      volumes:
+      - name: litecoin
+        persistentVolumeClaim:
+          claimName: litecoin-data-pvc

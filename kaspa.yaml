@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kaspa-data-pv
+spec:
+  storageClassName: "local-path"
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /data/crypto/kaspa
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kaspa-data-pvc
+  namespace: crypto
+spec:
+  volumeName: kaspa-data-pv
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: crypto
+  name: kaspa
+spec:
+  selector:
+    app: kaspa
+  ports:
+  - name: rpc
+    port: 16110
+  - name: p2p
+    port: 16111
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  namespace: crypto
+  name: kaspa
+spec:
+  replicas: 1
+  selector:
+    app: kaspa
+  template:
+    metadata:
+      name: kaspa
+      labels:
+        app: kaspa
+    spec:
+      hostname: kaspa
+      containers:
+      - name: kaspad
+        image: quay.io/declarativesystems/cryptodaemons_kaspa:0.12.11
+        args:
+        - --utxoindex
+        - --saferpc 
+        volumeMounts:
+        - mountPath: /root/.kaspad
+          name: kaspa
+      restartPolicy: Always
+      volumes:
+      - name: kaspa
+        persistentVolumeClaim:
+          claimName: kaspa-data-pvc

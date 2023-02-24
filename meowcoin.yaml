@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: meowcoin-data-pv
+spec:
+  storageClassName: "local-path"
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /data/crypto/meowcoin
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: meowcoin-data-pvc
+  namespace: crypto
+spec:
+  volumeName: meowcoin-data-pv
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: crypto
+  name: meowcoin
+spec:
+  selector:
+    app: meowcoin
+  ports:
+  - name: p2p
+    port: 8788
+  - name: rpc
+    port: 9766
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  namespace: crypto
+  name: meowcoin
+spec:
+  replicas: 1
+  selector:
+    app: meowcoin
+  template:
+    metadata:
+      name: meowcoin
+      labels:
+        app: meowcoin
+    spec:
+      hostname: meowcoin
+      containers:
+      - name: meowcoind
+        image: quay.io/declarativesystems/cryptodaemons_meowcoin:1.0.3
+        args:
+        - "-server"
+        - "-printtoconsole"
+        volumeMounts:
+        - mountPath: /root/.meowcoin
+          name: meowcoin
+      restartPolicy: Always
+      volumes:
+      - name: meowcoin
+        persistentVolumeClaim:
+          claimName: meowcoin-data-pvc

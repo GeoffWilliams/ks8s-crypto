@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: monero-data-pv
+spec:
+  storageClassName: "local-path"
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /data/crypto/monero
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: monero-data-pvc
+  namespace: crypto
+spec:
+  volumeName: monero-data-pv
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: crypto
+  name: monero
+spec:
+  selector:
+    app: monero
+  ports:
+  - name: p2p
+    port: 18080
+  - name: rpc
+    port: 18081
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  namespace: crypto
+  name: monero
+spec:
+  replicas: 1
+  selector:
+    app: monero
+  template:
+    metadata:
+      name: monero
+      labels:
+        app: monero
+    spec:
+      hostname: monero
+      containers:
+      - name: monerod
+        image: quay.io/declarativesystems/cryptodaemons_monero:0.18.1.2
+        args:
+        - --confirm-external-bind
+        - --non-interactive
+        - --public-node
+        - --restricted-rpc
+        - --p2p-bind-ip=0.0.0.0
+        - --p2p-bind-port=18080
+        - --rpc-bind-ip=0.0.0.0
+        - --rpc-bind-port=18081
+        volumeMounts:
+        - mountPath: /root/.bitmonero
+          name: monero
+      restartPolicy: Always
+      volumes:
+      - name: monero
+        persistentVolumeClaim:
+          claimName: monero-data-pvc

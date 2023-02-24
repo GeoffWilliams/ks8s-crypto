@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: dogecoin-testnet-data-pv
+spec:
+  storageClassName: "local-path"
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /data/crypto/dogecoin-testnet
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dogecoin-testnet-data-pvc
+  namespace: crypto
+spec:
+  volumeName: dogecoin-testnet-data-pv
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: crypto
+  name: dogecoin-testnet
+spec:
+  selector:
+    app: dogecoin-testnet
+  ports:
+  - name: rpc
+    port: 44555
+  - name: p2p
+    port: 44556
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  namespace: crypto
+  name: dogecoin-testnet
+spec:
+  replicas: 1
+  selector:
+    app: dogecoin-testnet
+  template:
+    metadata:
+      name: dogecoin-testnet
+      labels:
+        app: dogecoin-testnet
+    spec:
+      hostname: dogecoin-testnet
+      containers:
+      - name: dogecoin-testnet
+        image: quay.io/declarativesystems/cryptodaemons_dogecoin:1.14.6
+        args:
+        - "-server"
+        - "-printtoconsole"
+        - "-testnet"
+        volumeMounts:
+        - mountPath: /root/.dogecoin-testnet
+          name: dogecoin-testnet
+      restartPolicy: Always
+      volumes:
+      - name: dogecoin-testnet
+        persistentVolumeClaim:
+          claimName: dogecoin-testnet-data-pvc

@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: dogecoin-data-pv
+spec:
+  storageClassName: "local-path"
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /data/crypto/dogecoin
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dogecoin-data-pvc
+  namespace: crypto
+spec:
+  volumeName: dogecoin-data-pv
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: local-path
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: crypto
+  name: dogecoin
+spec:
+  selector:
+    app: dogecoin
+  ports:
+  - name: rpc
+    port: 22555
+  - name: p2p
+    port: 22556
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  namespace: crypto
+  name: dogecoin
+spec:
+  replicas: 1
+  selector:
+    app: dogecoin
+  template:
+    metadata:
+      name: dogecoin
+      labels:
+        app: dogecoin
+    spec:
+      hostname: dogecoin
+      containers:
+      - name: dogecoin
+        image: quay.io/declarativesystems/cryptodaemons_dogecoin:1.14.6
+        args:
+        - "-server"
+        - "-printtoconsole"
+        volumeMounts:
+        - mountPath: /root/.dogecoin
+          name: dogecoin
+      restartPolicy: Always
+      volumes:
+      - name: dogecoin
+        persistentVolumeClaim:
+          claimName: dogecoin-data-pvc
