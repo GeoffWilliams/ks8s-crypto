@@ -59,7 +59,7 @@ spec:
       hostname: litecoin
       containers:
       - name: litecoind
-        image: quay.io/declarativesystems/cryptodaemons_litecoin:0.21.2.1
+        image: quay.io/declarativesystems/cryptodaemons_litecoin:0.21.2.2
         args:
         - "-server"
         volumeMounts:

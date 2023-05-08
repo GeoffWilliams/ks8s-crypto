@@ -61,7 +61,7 @@ spec:
       hostname: kaspa
       containers:
       - name: kaspad
-        image: quay.io/declarativesystems/cryptodaemons_kaspa:0.12.11
+        image: quay.io/declarativesystems/cryptodaemons_kaspa:0.12.13
         args:
         - --utxoindex
         - --saferpc 

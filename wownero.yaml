@@ -61,7 +61,7 @@ spec:
       hostname: wownero
       containers:
       - name: wownerod
-        image: quay.io/declarativesystems/cryptodaemons_wownero:0.10.1.0
+        image: quay.io/declarativesystems/cryptodaemons_wownero:0.11.0.3
         args:
         - --confirm-external-bind
         - --non-interactive

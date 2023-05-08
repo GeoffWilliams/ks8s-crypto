@@ -61,7 +61,7 @@ spec:
       hostname: monero
       containers:
       - name: monerod
-        image: quay.io/declarativesystems/cryptodaemons_monero:0.18.1.2
+        image: quay.io/declarativesystems/cryptodaemons_monero:0.18.2.2
         args:
         - --confirm-external-bind
         - --non-interactive

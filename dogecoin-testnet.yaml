@@ -67,7 +67,7 @@ spec:
         - "-printtoconsole"
         - "-testnet"
         volumeMounts:
-        - mountPath: /root/.dogecoin-testnet
+        - mountPath: /root/.dogecoin
           name: dogecoin-testnet
       restartPolicy: Always
       volumes:
