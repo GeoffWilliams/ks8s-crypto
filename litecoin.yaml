@@ -44,7 +44,7 @@ spec:
 
 ---
 apiVersion: apps/v1
-kind: ReplicaSet
+kind: Deployment
 metadata:
   namespace: crypto
   name: litecoin
