@@ -32,6 +32,8 @@ apiVersion: v1
 metadata:
   namespace: crypto
   name: bitcoin
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 192.168.4.9
 spec:
   selector:
     app: bitcoin
@@ -43,15 +45,16 @@ spec:
   type: LoadBalancer
 
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1
+kind: ReplicaSet
 metadata:
   namespace: crypto
   name: bitcoin
 spec:
   replicas: 1
   selector:
-    app: bitcoin
+    matchLabels:
+      app: bitcoin
   template:
     metadata:
       name: bitcoin
@@ -61,7 +64,7 @@ spec:
       hostname: bitcoin
       containers:
       - name: bitcoind
-        image: quay.io/declarativesystems/cryptodaemons_bitcoin:23.0
+        image: quay.io/declarativesystems/cryptodaemons_bitcoin:25.0
         args:
         - "-server"
         - "-txindex=1"

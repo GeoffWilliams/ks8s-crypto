@@ -32,6 +32,8 @@ apiVersion: v1
 metadata:
   namespace: crypto
   name: kaspa
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 192.168.4.15
 spec:
   selector:
     app: kaspa
@@ -43,15 +45,16 @@ spec:
   type: LoadBalancer
 
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1
+kind: ReplicaSet
 metadata:
   namespace: crypto
   name: kaspa
 spec:
   replicas: 1
   selector:
-    app: kaspa
+    matchLabels:
+      app: kaspa
   template:
     metadata:
       name: kaspa

@@ -32,6 +32,8 @@ apiVersion: v1
 metadata:
   namespace: crypto
   name: monero
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 192.168.4.16
 spec:
   selector:
     app: monero
@@ -43,15 +45,16 @@ spec:
   type: LoadBalancer
 
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1
+kind: ReplicaSet
 metadata:
   namespace: crypto
   name: monero
 spec:
   replicas: 1
   selector:
-    app: monero
+    matchLabels:
+      app: monero
   template:
     metadata:
       name: monero

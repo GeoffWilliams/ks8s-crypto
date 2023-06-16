@@ -32,6 +32,8 @@ apiVersion: v1
 metadata:
   namespace: crypto
   name: litecoin
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 192.168.4.14
 spec:
   selector:
     app: litecoin
@@ -41,15 +43,16 @@ spec:
   type: LoadBalancer
 
 ---
-apiVersion: v1
-kind: ReplicationController
+apiVersion: apps/v1
+kind: ReplicaSet
 metadata:
   namespace: crypto
   name: litecoin
 spec:
   replicas: 1
   selector:
-    app: litecoin
+    matchLabels:
+      app: litecoin
   template:
     metadata:
       name: litecoin
