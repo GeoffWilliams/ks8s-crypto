@@ -9,7 +9,7 @@ spec:
   accessModes:
   - ReadWriteOnce
   hostPath:
-    path: /data/crypto/wownero
+    path: /data/nvme/crypto/wownero
   persistentVolumeReclaimPolicy: Retain
 
 ---
@@ -35,7 +35,7 @@ metadata:
   namespace: crypto
   name: wownero
   annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.4.17
+    metallb.universe.tf/loadBalancerIPs: 192.168.3.17
 spec:
   selector:
     app: wownero
@@ -66,7 +66,7 @@ spec:
       hostname: wownero
       containers:
       - name: wownerod
-        image: quay.io/declarativesystems/cryptodaemons_wownero:0.11.0.3
+        image: quay.io/declarativesystems/cryptodaemons_wownero:0.11.1.0
         args:
         - --confirm-external-bind
         - --non-interactive

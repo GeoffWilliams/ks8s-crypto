@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: crypto
+  name: bzminer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bzminer
+  template:
+    metadata:
+      name: bzminer
+      labels:
+        app: bzminer
+    spec:
+      hostname: bzminer
+      runtimeClassName: nvidia 
+      containers:
+      - name: bzminer
+        image: quay.io/declarativesystems/cryptodaemons_bzminer:17.0.0
+        imagePullPolicy: Always
+        args:
+        - "-a"
+        - "meowcoin"
+        - "-w"
+        - "MGq7UPAASNwzTKWPKjrsrJxyDxpwdvdTr5"
+        - "-r"
+        - "cloud"
+        - "-p"
+        - "stratum+tcp://stratum.coinminerz.com:3323"
+        - "--nc"
+        - "1"
+        env:
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: all
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: all
+
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+      restartPolicy: Always
+      
+

@@ -9,7 +9,7 @@ spec:
   accessModes:
   - ReadWriteOnce
   hostPath:
-    path: /data/crypto/kaspa
+    path: /data/nvme/crypto/kaspa
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -33,7 +33,7 @@ metadata:
   namespace: crypto
   name: kaspa
   annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.4.15
+    metallb.universe.tf/loadBalancerIPs: 192.168.3.15
 spec:
   selector:
     app: kaspa
@@ -64,7 +64,7 @@ spec:
       hostname: kaspa
       containers:
       - name: kaspad
-        image: quay.io/declarativesystems/cryptodaemons_kaspa:0.12.13
+        image: quay.io/declarativesystems/cryptodaemons_kaspa:0.12.14
         args:
         - --utxoindex
         - --saferpc 

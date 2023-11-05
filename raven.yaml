@@ -9,7 +9,7 @@ spec:
   accessModes:
   - ReadWriteOnce
   hostPath:
-    path: /data/crypto/raven
+    path: /data/nvme/crypto/raven
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -33,7 +33,7 @@ metadata:
   namespace: crypto
   name: raven
   annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.4.10
+    metallb.universe.tf/loadBalancerIPs: 192.168.3.10
 spec:
   selector:
     app: raven

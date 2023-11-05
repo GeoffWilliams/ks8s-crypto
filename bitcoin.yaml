@@ -9,7 +9,7 @@ spec:
   accessModes:
   - ReadWriteOnce
   hostPath:
-    path: /data/crypto/bitcoin
+    path: /data/nvme/crypto/bitcoin
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -33,7 +33,7 @@ metadata:
   namespace: crypto
   name: bitcoin
   annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.4.9
+    metallb.universe.tf/loadBalancerIPs: 192.168.3.9
 spec:
   selector:
     app: bitcoin
@@ -64,7 +64,7 @@ spec:
       hostname: bitcoin
       containers:
       - name: bitcoind
-        image: quay.io/declarativesystems/cryptodaemons_bitcoin:25.0
+        image: quay.io/declarativesystems/cryptodaemons_bitcoin:25.1
         args:
         - "-server"
         - "-txindex=1"

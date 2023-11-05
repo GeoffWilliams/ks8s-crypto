@@ -9,7 +9,7 @@ spec:
   accessModes:
   - ReadWriteOnce
   hostPath:
-    path: /data/crypto/dogecoin-testnet
+    path: /data/nvme/crypto/dogecoin-testnet
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -33,7 +33,7 @@ metadata:
   namespace: crypto
   name: dogecoin-testnet
   annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.4.12
+    metallb.universe.tf/loadBalancerIPs: 192.168.3.12
 spec:
   selector:
     app: dogecoin-testnet
